@@ -40,7 +40,7 @@
     - rsyslog
     - files
   file: >
-    path="{{ rsyslog_include_path }}"
+    path={{ rsyslog_include_path }}
     owner={{ rsyslog_file_owner }}
     group={{ rsyslog_file_group }}
     mode={{ rsyslog_file_mode }}
