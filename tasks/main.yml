@@ -21,6 +21,18 @@
 - include: main_arch.yml
   when: ansible_os_family == 'Archlinux'
 
+- name: create additional configuration directory
+  tags:
+    - rsyslog
+    - files
+  file: >
+    path={{ rsyslog_include_path }}
+    owner={{ rsyslog_file_owner }}
+    group={{ rsyslog_file_group }}
+    mode={{ rsyslog_file_mode }}
+    state=directory
+  when: rsyslog_os_supported == True
+
 - name: setup main configuration
   tags:
     - rsyslog
@@ -35,19 +47,46 @@
     - restart rsyslog
   when: rsyslog_os_supported == True
 
-- name: create additional configuration directory
+- name: process extra plugins
+  tags:
+    - rsyslog
+    - plugins
+  get_url: >
+    url={{ item.url}}
+    dest={{ rsyslog_plugin_dir }}/{{ item.name }}
+    mode={{ rsyslog_plugin_mode }}
+  with_items: "{{rsyslog_plugins}}"
+  notify:
+    - restart rsyslog
+  when: rsyslog_os_supported == True
+
+- name: Process templates - acquire template
   tags:
     - rsyslog
     - files
-  file: >
-    path={{ rsyslog_include_path }}
+  get_url: >
+    url={{ item.url }}
+    dest={{ rsyslog_template_tmp }}/{{ item.name }}
+    mode=0220
+  with_items: "{{ rsyslog_templates }}"
+  when: rsyslog_os_supported == True
+
+- name: Process templates - create config
+  tags:
+    - rsyslog
+    - files
+  template: >
+    src={{ rsyslog_template_tmp }}/{{ item.name }}
+    dest={{ rsyslog_include_path }}/{{item.dest}}
     owner={{ rsyslog_file_owner }}
     group={{ rsyslog_file_group }}
     mode={{ rsyslog_file_mode }}
-    state=directory
+  with_items: "{{ rsyslog_templates }}"
+  notify:
+    - restart rsyslog
   when: rsyslog_os_supported == True
 
-- name: setup default additional configuration
+- name: setup default additional configuration for file destination
   tags:
     - rsyslog
     - files
