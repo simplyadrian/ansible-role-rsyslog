@@ -6,3 +6,4 @@ rsyslog_service_name: rsyslog
 rsyslog_file_owner: syslog
 rsyslog_file_group: adm
 rsyslog_os_supported: yes
+rsyslog_plugin_dir: "/usr/lib/rsyslog/"
